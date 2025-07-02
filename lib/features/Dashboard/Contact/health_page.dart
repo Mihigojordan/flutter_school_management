@@ -3,6 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+class AppColors {
+  static const primaryD = Color(0xff280446);
+  static const containerD = Color(0xff491475);
+  static const headerD = Color(0xff18002D);
+  static const dropdownMenuD = Color(0xff8654B0);
+}
+
 class HealthBlogPage extends StatefulWidget {
   const HealthBlogPage({super.key});
 
@@ -24,13 +31,20 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
     super.initState();
     _speech = stt.SpeechToText();
     _loadBlogsFromFirebase();
+
+    // Listen to typing and filter blogs dynamically
+    _searchController.addListener(() {
+      _filterBlogs(_searchController.text);
+      setState(() {}); // To update suffixIcon visibility
+    });
   }
 
   Future<void> _loadBlogsFromFirebase() async {
     try {
-      final QuerySnapshot snapshot = await FirebaseFirestore.instance
+      final snapshot = await FirebaseFirestore.instance
           .collection('blogs')
-          .limit(20)
+          .orderBy('timestamp', descending: true)
+          .limit(50)
           .get();
 
       setState(() {
@@ -43,9 +57,16 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
   }
 
   void _filterBlogs(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        _filteredBlogs = _blogs;
+      });
+      return;
+    }
+
     final filtered = _blogs.where((doc) {
-      final title = doc['title'].toString().toLowerCase();
-      final content = doc['content'].toString().toLowerCase();
+      final title = doc['title']?.toString().toLowerCase() ?? '';
+      final content = doc['content']?.toString().toLowerCase() ?? '';
       return title.contains(query.toLowerCase()) || content.contains(query.toLowerCase());
     }).toList();
 
@@ -73,6 +94,9 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
         _speech.listen(
           onResult: (val) {
             _searchController.text = val.recognizedWords;
+            _searchController.selection = TextSelection.fromPosition(
+              TextPosition(offset: _searchController.text.length),
+            );
             _filterBlogs(val.recognizedWords);
           },
         );
@@ -87,14 +111,20 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
   void dispose() {
     _flutterTts.stop();
     _speech.stop();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.primaryD,
       appBar: AppBar(
-        title: const Text('Health Voice Blog'),
+        backgroundColor: AppColors.headerD,
+        title: const Text(
+          'Health Voice Blog',
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           IconButton(
             icon: Icon(_isListening ? Icons.mic_off : Icons.mic),
@@ -108,29 +138,58 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               controller: _searchController,
-              onChanged: _filterBlogs,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Search blogs...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          _filterBlogs('');
+                          FocusScope.of(context).unfocus(); // Hide keyboard
+                        },
+                      ),
+                filled: true,
+                fillColor: AppColors.dropdownMenuD.withOpacity(0.1),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: AppColors.dropdownMenuD),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
+              style: const TextStyle(color: Colors.white),
             ),
           ),
           Expanded(
             child: _filteredBlogs.isEmpty
-                ? const Center(child: Text('No blogs found'))
+                ? const Center(
+                    child: Text('No blogs found', style: TextStyle(color: Colors.white70)),
+                  )
                 : ListView.builder(
                     itemCount: _filteredBlogs.length,
                     itemBuilder: (context, index) {
                       final blog = _filteredBlogs[index];
+                      final title = blog['title'] ?? 'No Title';
+                      final content = blog['content'] ?? '';
+
                       return Card(
+                        color: AppColors.containerD,
                         margin: const EdgeInsets.all(8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: ListTile(
-                          title: Text(blog['title']),
+                          title: Text(title, style: const TextStyle(color: Colors.white)),
                           subtitle: Text(
-                            blog['content'].toString().substring(0, 60) + '...',
+                            content.length > 60 ? content.substring(0, 60) + '...' : content,
+                            style: const TextStyle(color: Colors.white70),
                           ),
                           trailing: PopupMenuButton(
+                            iconColor: Colors.white,
                             itemBuilder: (_) => [
                               const PopupMenuItem(value: 'read', child: Text('Read')),
                               const PopupMenuItem(value: 'listen', child: Text('Listen')),
@@ -140,18 +199,43 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
                                 showDialog(
                                   context: context,
                                   builder: (_) => AlertDialog(
-                                    title: Text(blog['title']),
-                                    content: SingleChildScrollView(child: Text(blog['content'])),
+                                    backgroundColor: AppColors.headerD,
+                                    title: Text(title, style: const TextStyle(color: Colors.white)),
+                                    content: SingleChildScrollView(
+                                      child: Text(content, style: const TextStyle(color: Colors.white70)),
+                                    ),
                                     actions: [
                                       TextButton(
                                         onPressed: () => Navigator.pop(context),
-                                        child: const Text('Close'),
+                                        child: const Text('Close', style: TextStyle(color: Colors.white)),
                                       )
                                     ],
                                   ),
                                 );
                               } else if (value == 'listen') {
-                                _speak(blog['content']);
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => AlertDialog(
+                                    backgroundColor: AppColors.headerD,
+                                    title: Text(title, style: const TextStyle(color: Colors.white)),
+                                    content: SingleChildScrollView(
+                                      child: _SpeakingContent(
+                                        text: content,
+                                        flutterTts: _flutterTts,
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () async {
+                                          await _flutterTts.stop();
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('Stop', style: TextStyle(color: Colors.white)),
+                                      )
+                                    ],
+                                  ),
+                                );
                               }
                             },
                           ),
@@ -161,6 +245,68 @@ class _HealthBlogPageState extends State<HealthBlogPage> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Widget that highlights spoken text during TTS reading
+class _SpeakingContent extends StatefulWidget {
+  final String text;
+  final FlutterTts flutterTts;
+
+  const _SpeakingContent({required this.text, required this.flutterTts, Key? key}) : super(key: key);
+
+  @override
+  State<_SpeakingContent> createState() => _SpeakingContentState();
+}
+
+class _SpeakingContentState extends State<_SpeakingContent> {
+  int _currentWordIndex = -1;
+  late List<String> _words;
+
+  @override
+  void initState() {
+    super.initState();
+    _words = widget.text.split(RegExp(r'\s+'));
+
+    widget.flutterTts.setProgressHandler((String text, int start, int end, String word) {
+      setState(() {
+        _currentWordIndex = _words.indexWhere((w) => w.toLowerCase() == word.toLowerCase());
+      });
+    });
+
+    widget.flutterTts.setCompletionHandler(() {
+      setState(() {
+        _currentWordIndex = -1;
+      });
+    });
+
+    widget.flutterTts.speak(widget.text);
+  }
+
+  @override
+  void dispose() {
+    widget.flutterTts.stop();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RichText(
+      text: TextSpan(
+        children: _words.asMap().entries.map((entry) {
+          int idx = entry.key;
+          String word = entry.value;
+
+          return TextSpan(
+            text: word + (idx < _words.length - 1 ? ' ' : ''),
+            style: TextStyle(
+              color: idx == _currentWordIndex ? Colors.white : Colors.white70,
+              fontWeight: idx == _currentWordIndex ? FontWeight.bold : FontWeight.normal,
+            ),
+          );
+        }).toList(),
       ),
     );
   }

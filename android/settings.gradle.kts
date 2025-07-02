@@ -16,10 +16,14 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // ✅ Allow Flutter plugin to use maven()
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS) // IMPORTANT for Flutter plugin
+
     repositories {
         google()
         mavenCentral()
+        maven {
+            url = uri("https://storage.googleapis.com/download.flutter.io")
+        }
     }
 }
 

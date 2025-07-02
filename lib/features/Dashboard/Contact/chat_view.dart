@@ -180,12 +180,12 @@ class _ChatViewState extends State<ChatView> with SingleTickerProviderStateMixin
                   children: [
                     Expanded(
                       child: Container(
-                        height: 32,
+                        height: 40,
                         child: TextField(
                           controller: _aiController,
                           style: const TextStyle(color: Colors.white, fontSize: 12),
                           decoration: InputDecoration(
-                            hintText: "Ask Gemini...",
+                            hintText: "Ask Nepanir...",
                             hintStyle: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(6),
@@ -199,7 +199,7 @@ class _ChatViewState extends State<ChatView> with SingleTickerProviderStateMixin
                               borderRadius: BorderRadius.circular(6),
                               borderSide: const BorderSide(color: Colors.white),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical:8 ),
                             filled: true,
                             fillColor: containerD,
                           ),
@@ -301,7 +301,7 @@ class _ChatViewState extends State<ChatView> with SingleTickerProviderStateMixin
                   children: [
                     Expanded(
                       child: Container(
-                        height: 32,
+                        height: 40,
                         child: TextField(
                           controller: _liveChatController,
                           style: const TextStyle(color: Colors.white, fontSize: 12),

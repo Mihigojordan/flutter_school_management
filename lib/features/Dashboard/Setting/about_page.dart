@@ -5,11 +5,11 @@ class AboutPage extends StatelessWidget {
   const AboutPage({Key? key}) : super(key: key);
 
   static const _appDescription = '''
-Nepanikar is a modern app designed to enhance your daily productivity with seamless features, intuitive design, and reliable performance. 
+Nepanir is a modern app designed to enhance your daily productivity with seamless features, intuitive design, and reliable performance. 
 
 It provides you with tools and settings customization to optimize your experience and keep everything organized effortlessly.
 
-Explore the app to discover how Nepanikar can simplify your life and keep you connected to what matters most.
+Explore the app to discover how Nepanir can simplify your life and keep you connected to what matters most.
 ''';
 
   @override
@@ -21,7 +21,7 @@ Explore the app to discover how Nepanikar can simplify your life and keep you co
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Nepanikar',
+          'Nepanir',
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),

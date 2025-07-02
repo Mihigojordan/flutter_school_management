@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PhoneView extends StatefulWidget {
   const PhoneView({super.key});
@@ -12,19 +13,35 @@ class PhoneView extends StatefulWidget {
 class _PhoneViewState extends State<PhoneView> {
   int? selectedCountryIndex;
   bool _isLoading = false;
+  List<Map<String, String>> countries = [];
 
-  final List<Map<String, String>> countries = [
-    {
-      'name': 'United States',
-      'phone': '+250791813289',
-      'description': 'Suicide & Crisis Lifeline'
-    },
-    {
-      'name': 'United Kingdom',
-      'phone': '+2505169053',
-      'description': 'Samaritans Crisis Support'
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _fetchContactsFromFirestore();
+  }
+
+  Future<void> _fetchContactsFromFirestore() async {
+    try {
+      final snapshot =
+          await FirebaseFirestore.instance.collection('crisis_contacts').get();
+
+      final data = snapshot.docs.map((doc) {
+        final d = doc.data();
+        return {
+          'name': d['name'] ?? 'Unknown',
+          'phone': d['phone'] ?? '',
+          'description': d['description'] ?? '',
+        };
+      }).toList();
+
+      setState(() {
+        countries = data.map((e) => e.map((k, v) => MapEntry(k, v.toString()))).toList();
+      });
+    } catch (e) {
+      _showSnackBar('Failed to load contacts: $e', Colors.red.shade600);
+    }
+  }
 
   Future<void> _saveSelection() async {
     if (selectedCountryIndex == null) {
@@ -222,9 +239,16 @@ class _PhoneViewState extends State<PhoneView> {
             const SizedBox(height: 20),
 
             // Countries List
-            Column(
-              children: List.generate(countries.length, _buildCountryCard),
-            ),
+            countries.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(30),
+                      child: CircularProgressIndicator(color: Colors.white),
+                    ),
+                  )
+                : Column(
+                    children: List.generate(countries.length, _buildCountryCard),
+                  ),
 
             const SizedBox(height: 20),
 

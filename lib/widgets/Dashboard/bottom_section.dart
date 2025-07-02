@@ -47,10 +47,11 @@ class BottomSection extends StatelessWidget {
             icon: Icon(Icons.calendar_today_rounded), // Calendar icon for Record
             label: 'Record',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.call_rounded), // Call icon for Contact
-            label: 'Contact',
-          ),
+         BottomNavigationBarItem(
+             icon: Icon(Icons.support_agent), // Better icon for Support Center
+          label: 'Support Center',
+),
+
           BottomNavigationBarItem(
             icon: Icon(Icons.settings_rounded),
             label: 'Settings',

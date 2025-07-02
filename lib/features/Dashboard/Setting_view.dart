@@ -235,13 +235,13 @@ class _SettingViewState extends State<SettingView> {
                           }
                         },
                       ),
-                      _buildSettingTile(
-                        icon: Icons.import_export_outlined,
-                        title: 'Import and Export',
-                        onTap: () {
-                          context.go('/dashboard/settings/import-export');
-                        },
-                      ),
+                      // _buildSettingTile(
+                      //   icon: Icons.import_export_outlined,
+                      //   title: 'Import and Export',
+                      //   onTap: () {
+                      //     context.go('/dashboard/settings/import-export');
+                      //   },
+                      // ),
                       _buildSettingTile(
                         icon: Icons.info_outline,
                         title: 'About',
@@ -249,27 +249,27 @@ class _SettingViewState extends State<SettingView> {
                           context.go('/dashboard/settings/about');
                         },
                       ),
-                      _buildSettingTile(
-                        icon: Icons.language_outlined,
-                        title: 'Language',
-                        onTap: () {
-                          context.go('/dashboard/settings/language');
-                        },
-                      ),
-                      _buildSettingTile(
-                        icon: Icons.palette_outlined,
-                        title: 'Theme',
-                        onTap: () {
-                          context.go('/dashboard/settings/theme');
-                        },
-                      ),
-                      _buildSettingTile(
-                        icon: Icons.support_outlined,
-                        title: 'Supported By',
-                        onTap: () {
-                          context.go('/dashboard/settings/supported-by');
-                        },
-                      ),
+                      // _buildSettingTile(
+                      //   icon: Icons.language_outlined,
+                      //   title: 'Language',
+                      //   onTap: () {
+                      //     context.go('/dashboard/settings/language');
+                      //   },
+                      // ),
+                      // _buildSettingTile(
+                      //   icon: Icons.palette_outlined,
+                      //   title: 'Theme',
+                      //   onTap: () {
+                      //     context.go('/dashboard/settings/theme');
+                      //   },
+                      // ),
+                      // _buildSettingTile(
+                      //   icon: Icons.support_outlined,
+                      //   title: 'Supported By',
+                      //   onTap: () {
+                      //     context.go('/dashboard/settings/supported-by');
+                      //   },
+                      // ),
                       _buildSettingTile(
                         icon: Icons.logout_outlined,
                         title: 'Logout',

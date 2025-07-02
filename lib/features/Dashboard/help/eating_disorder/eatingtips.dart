@@ -1,22 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class RecordView extends StatefulWidget {
-  const RecordView({super.key});
+class TipsView extends StatefulWidget {
+  const TipsView({super.key});
 
   @override
-  State<RecordView> createState() => _RecordViewState();
+  State<TipsView> createState() => _TipsViewState();
 }
 
-class _RecordViewState extends State<RecordView> {
+class _TipsViewState extends State<TipsView> {
   int activeIndex = 0;
 
-  final List<_RecordLink> records = [
-    _RecordLink(icon: Icons.mood, title: 'Mood Monitoring'),
-    _RecordLink(icon: Icons.bedtime, title: 'My Sleep'),
-    _RecordLink(icon: Icons.book, title: 'Diary'),
-    _RecordLink(icon: Icons.timeline, title: 'Journey'),
-    _RecordLink(icon: Icons.restaurant_menu, title: 'Meal Record'),
+  final List<_TipsLink> tips = [
+    _TipsLink(title: 'Body Shape Tips'),
+    _TipsLink(title: 'Guilt After Eating Tips'),
+    _TipsLink(title: 'Binge Eating Tips'),
+    _TipsLink(title: 'Urge to Vomiting Tips'),
+    _TipsLink(title: 'I\'m Failing Tips'),
+    _TipsLink(title: 'General Tips'),
+  ];
+
+  final List<String> routes = [
+    '/dashboard/help/eating-disorders/mindful-tips/body-shape',
+    '/dashboard/help/eating-disorders/mindful-tips/guilt-after-eating',
+    '/dashboard/help/eating-disorders/mindful-tips/binge-eating',
+    '/dashboard/help/eating-disorders/mindful-tips/urge-to-vomiting',
+    '/dashboard/help/eating-disorders/mindful-tips/im-failing',
+    '/dashboard/help/eating-disorders/mindful-tips/general',
   ];
 
   @override
@@ -30,36 +40,20 @@ class _RecordViewState extends State<RecordView> {
         backgroundColor: bgColor,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Records',
-          style: TextStyle(color: Colors.white),
-        ),
+        title: const Text('Tips Categories', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(top: 24, left: 20),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: records.asMap().entries.map((entry) {
+          children: tips.asMap().entries.map((entry) {
             int idx = entry.key;
-            _RecordLink record = entry.value;
+            _TipsLink tip = entry.value;
             bool isActive = idx == activeIndex;
 
             return GestureDetector(
               onTap: () {
-                setState(() {
-                  activeIndex = idx;
-                });
-
-                // Define your new routes here
-                final routes = [
-                  '/dashboard/record/mood-monitoring',
-                  '/dashboard/record/my-sleep',
-                  '/dashboard/record/diary',
-                  '/dashboard/record/journey',
-                  '/dashboard/record/meal-record',
-                ];
-
+                setState(() => activeIndex = idx);
                 GoRouter.of(context).go(routes[idx]);
               },
               child: Container(
@@ -76,11 +70,11 @@ class _RecordViewState extends State<RecordView> {
                 ),
                 child: Row(
                   children: [
-                    Icon(record.icon, color: Colors.white, size: 28),
+                    const Icon(Icons.tips_and_updates, color: Colors.white, size: 28),
                     const SizedBox(width: 20),
                     Expanded(
                       child: Text(
-                        record.title,
+                        tip.title,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -100,12 +94,8 @@ class _RecordViewState extends State<RecordView> {
   }
 }
 
-class _RecordLink {
-  final IconData icon;
+class _TipsLink {
   final String title;
 
-  _RecordLink({
-    required this.icon,
-    required this.title,
-  });
+  _TipsLink({required this.title});
 }

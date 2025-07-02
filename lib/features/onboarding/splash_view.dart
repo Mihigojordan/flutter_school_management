@@ -47,7 +47,7 @@ class _SplashViewState extends State<SplashView> {
               const Padding(
                 padding: EdgeInsets.only(bottom: 24),
                 child: Text(
-                  "Nepanikar",
+                  "Neparik",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 28,

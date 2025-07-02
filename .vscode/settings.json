@@ -1,4 +1,5 @@
 {
     "dart.previewHotReloadOnSaveWatcher": true,
-    "dart.hotReloadOnSave": "manual"
+    "dart.hotReloadOnSave": "manual",
+    "cmake.sourceDirectory": "C:/xampp/htdocs/flutter_school_management/linux"
 }

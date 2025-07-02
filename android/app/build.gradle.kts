@@ -44,6 +44,14 @@ flutter {
     source = "../.."
 }
 
+repositories {
+    google()
+    mavenCentral()
+    maven {
+        url = uri("https://storage.googleapis.com/download.flutter.io")
+    }
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.10.1")
     implementation("androidx.appcompat:appcompat:1.6.1")
@@ -51,7 +59,8 @@ dependencies {
 
     // Required for desugaring
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    implementation("io.flutter:flutter_embedding_debug:1.0.0")
+
+
     // Firebase Crashlytics & Analytics
     implementation("com.google.firebase:firebase-crashlytics-ktx:18.6.1")
     implementation("com.google.firebase:firebase-analytics-ktx:21.5.0")

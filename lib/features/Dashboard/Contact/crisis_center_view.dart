@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AppColors {
   static const primaryD = Color(0xff280446);
@@ -20,30 +19,24 @@ class CrisisCenterView extends StatefulWidget {
 }
 
 class _CrisisCenterViewState extends State<CrisisCenterView> {
-  String? userId; // will hold persistent user id
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _postController = TextEditingController();
+  String? userId;
 
   @override
   void initState() {
     super.initState();
-    _loadUserId();
+    _ensureUserAuthenticated();
   }
 
-  Future<void> _loadUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedUserId = prefs.getString('userId');
-    if (savedUserId != null) {
-      setState(() {
-        userId = savedUserId;
-      });
-    } else {
-      final newUserId = const Uuid().v4();
-      await prefs.setString('userId', newUserId);
-      setState(() {
-        userId = newUserId;
-      });
+  Future<void> _ensureUserAuthenticated() async {
+    final auth = FirebaseAuth.instance;
+    if (auth.currentUser == null) {
+      await auth.signInAnonymously();
     }
+    setState(() {
+      userId = auth.currentUser?.uid;
+    });
   }
 
   @override
@@ -54,11 +47,13 @@ class _CrisisCenterViewState extends State<CrisisCenterView> {
 
   void _addPost() async {
     final message = _postController.text.trim();
-    if (message.isEmpty || userId == null) return;
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (message.isEmpty || uid == null) return;
 
     try {
       await _firestore.collection('support_posts').add({
-        'userId': userId,
+        'userId': uid,
         'message': message,
         'timestamp': FieldValue.serverTimestamp(),
       });
@@ -158,31 +153,11 @@ class _CrisisCenterViewState extends State<CrisisCenterView> {
     );
   }
 
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final difference = now.difference(time);
-
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${time.day}/${time.month}/${time.year}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (userId == null) {
-      // Still loading userId from storage
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
@@ -226,50 +201,19 @@ class _CrisisCenterViewState extends State<CrisisCenterView> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppColors.containerD.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.dropdownMenuD.withOpacity(0.3), width: 1),
+                  ElevatedButton.icon(
+                    onPressed: _showPostDialog,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.dropdownMenuD,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      elevation: 4,
                     ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.favorite, color: AppColors.white, size: 28),
-                            SizedBox(width: 12),
-                            Text(
-                              'Safe Space for Support',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.white),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Share your experiences and connect with others anonymously. You\'re not alone in this journey.',
-                          style: TextStyle(fontSize: 15, color: AppColors.whiteOpacity, height: 1.4),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: ElevatedButton.icon(
-                      onPressed: _showPostDialog,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.dropdownMenuD,
-                        foregroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 4,
-                      ),
-                      icon: const Icon(Icons.add_comment, size: 20),
-                      label: const Text('Share Your Story', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                    ),
+                    icon: const Icon(Icons.add_comment, size: 20),
+                    label: const Text('Share Your Story',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                   const SizedBox(height: 20),
                   Expanded(
@@ -306,17 +250,11 @@ class PostListTab extends StatelessWidget {
     final now = DateTime.now();
     final difference = now.difference(time);
 
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${time.day}/${time.month}/${time.year}';
-    }
+    if (difference.inMinutes < 1) return 'Just now';
+    if (difference.inMinutes < 60) return '${difference.inMinutes}m ago';
+    if (difference.inHours < 24) return '${difference.inHours}h ago';
+    if (difference.inDays < 7) return '${difference.inDays}d ago';
+    return '${time.day}/${time.month}/${time.year}';
   }
 
   @override
@@ -325,27 +263,14 @@ class PostListTab extends StatelessWidget {
       stream: firestore.collection('support_posts').orderBy('timestamp', descending: true).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.whiteOpacity),
-                const SizedBox(height: 16),
-                Text(
-                  'Something went wrong\n${snapshot.error}',
-                  style: const TextStyle(color: AppColors.whiteOpacity),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
+          return const Center(
+            child: Text('Error loading posts', style: TextStyle(color: AppColors.white)),
           );
         }
 
         if (!snapshot.hasData) {
           return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.dropdownMenuD),
-            ),
+            child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(AppColors.dropdownMenuD)),
           );
         }
 
@@ -353,40 +278,26 @@ class PostListTab extends StatelessWidget {
         final filteredPosts = allPosts.where((doc) {
           final data = doc.data()! as Map<String, dynamic>;
           final postUserId = data['userId'] as String?;
-          if (isOwnPosts) {
-            return postUserId == userId;
-          } else {
-            return postUserId != null && postUserId != userId;
-          }
+          return isOwnPosts ? postUserId == userId : postUserId != null && postUserId != userId;
         }).toList();
 
         if (filteredPosts.isEmpty) {
           return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(isOwnPosts ? Icons.post_add : Icons.forum, size: 64, color: AppColors.whiteOpacity),
-                const SizedBox(height: 16),
-                Text(
-                  isOwnPosts
-                      ? 'You haven\'t shared any posts yet.\nTap the button above to share your first post!'
-                      : 'No posts from the community yet.\nBe the first to share something!',
-                  style: const TextStyle(color: AppColors.whiteOpacity, fontSize: 16),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+            child: Text(
+              isOwnPosts ? "You haven't posted yet." : "No community posts yet.",
+              style: const TextStyle(color: AppColors.whiteOpacity),
             ),
           );
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.only(bottom: 20),
           itemCount: filteredPosts.length,
+          padding: const EdgeInsets.symmetric(vertical: 12),
           itemBuilder: (context, index) {
             final data = filteredPosts[index].data()! as Map<String, dynamic>;
             final message = data['message'] ?? '';
-            final Timestamp? timestamp = data['timestamp'] as Timestamp?;
-            final time = timestamp != null ? timestamp.toDate() : DateTime.now();
+            final timestamp = data['timestamp'] as Timestamp?;
+            final time = timestamp?.toDate() ?? DateTime.now();
 
             return Container(
               margin: const EdgeInsets.symmetric(vertical: 8),
@@ -395,34 +306,25 @@ class PostListTab extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppColors.dropdownMenuD.withOpacity(0.3), width: 1),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16),
+                title: Text(
+                  isOwnPosts ? "You" : "Anonymous",
+                  style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: isOwnPosts ? AppColors.dropdownMenuD : AppColors.primaryD,
-                          radius: 20,
-                          child: Icon(isOwnPosts ? Icons.person : Icons.person_outline, color: AppColors.white, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(isOwnPosts ? 'You' : 'Anonymous',
-                                  style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-                              Text(_formatTime(time),
-                                  style: const TextStyle(color: AppColors.whiteOpacity, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 4),
+                    Text(
+                      message,
+                      style: const TextStyle(color: AppColors.white, height: 1.4),
                     ),
-                    const SizedBox(height: 12),
-                    Text(message, style: const TextStyle(color: AppColors.white, fontSize: 15, height: 1.4)),
+                    const SizedBox(height: 8),
+                    Text(
+                      _formatTime(time),
+                      style: const TextStyle(color: AppColors.whiteOpacity, fontSize: 12),
+                    ),
                   ],
                 ),
               ),
