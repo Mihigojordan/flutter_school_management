@@ -249,13 +249,13 @@ class _SettingViewState extends State<SettingView> {
                           context.go('/dashboard/settings/about');
                         },
                       ),
-                      // _buildSettingTile(
-                      //   icon: Icons.language_outlined,
-                      //   title: 'Language',
-                      //   onTap: () {
-                      //     context.go('/dashboard/settings/language');
-                      //   },
-                      // ),
+                      _buildSettingTile(
+                        icon: Icons.language_outlined,
+                        title: 'Language',
+                        onTap: () {
+                          context.go('/dashboard/settings/language');
+                        },
+                      ),
                       // _buildSettingTile(
                       //   icon: Icons.palette_outlined,
                       //   title: 'Theme',

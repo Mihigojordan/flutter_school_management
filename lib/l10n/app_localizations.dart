@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_fr.dart';
+import 'app_localizations_rw.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,14 +93,9 @@ abstract class AppLocalizations {
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
-    Locale('fr')
+    Locale('fr'),
+    Locale('rw')
   ];
-
-  /// No description provided for @appTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'My App'**
-  String get appTitle;
 
   /// No description provided for @language.
   ///
@@ -107,35 +103,11 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
-  /// No description provided for @settings.
+  /// No description provided for @selectLanguage.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
-  String get settings;
-
-  /// No description provided for @importExport.
-  ///
-  /// In en, this message translates to:
-  /// **'Import / Export'**
-  String get importExport;
-
-  /// No description provided for @import.
-  ///
-  /// In en, this message translates to:
-  /// **'Import'**
-  String get import;
-
-  /// No description provided for @export.
-  ///
-  /// In en, this message translates to:
-  /// **'Export'**
-  String get export;
-
-  /// No description provided for @languageSelection.
-  ///
-  /// In en, this message translates to:
-  /// **'Select your language'**
-  String get languageSelection;
+  /// **'Select Language'**
+  String get selectLanguage;
 
   /// No description provided for @english.
   ///
@@ -148,6 +120,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'French'**
   String get french;
+
+  /// No description provided for @kinyarwanda.
+  ///
+  /// In en, this message translates to:
+  /// **'Kinyarwanda'**
+  String get kinyarwanda;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
@@ -159,7 +137,7 @@ class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> 
   }
 
   @override
-  bool isSupported(Locale locale) => <String>['en', 'fr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>['en', 'fr', 'rw'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -172,6 +150,7 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en': return AppLocalizationsEn();
     case 'fr': return AppLocalizationsFr();
+    case 'rw': return AppLocalizationsRw();
   }
 
   throw FlutterError(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:school_project/features/Dashboard/Setting/langauageselection.dart';
 import 'package:school_project/features/Dashboard/help/eating_disorder/eatingtips.dart';
 
 // Layouts
@@ -363,6 +364,10 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: 'about',
                 builder: (context, state) => const AboutPage(),
               ),
+              GoRoute(
+                path: 'language',
+                  builder: (context, state) => const LanguageSelectionPage(),
+),
             ],
           ),
         ],

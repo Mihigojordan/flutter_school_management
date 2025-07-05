@@ -1,12 +1,8 @@
 {
   "@@locale": "en",
-  "appTitle": "My App",
   "language": "Language",
-  "settings": "Settings",
-  "importExport": "Import / Export",
-  "import": "Import",
-  "export": "Export",
-  "languageSelection": "Select your language",
+  "selectLanguage": "Select Language",
   "english": "English",
-  "french": "French"
+  "french": "French",
+  "kinyarwanda": "Kinyarwanda"
 }

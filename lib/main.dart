@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
-
 import './app/router.dart';
 import '../providers/notification_provider.dart';
+import '../providers/locale_provider.dart'; // your locale provider
 import 'firebase_options.dart';
+import 'package:school_project/l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,37 +40,57 @@ class _MyAppState extends ConsumerState<MyApp> {
   @override
   void initState() {
     super.initState();
-    // Optionally log initial screen:
     logCurrentScreen('InitialScreen');
   }
 
-  // Call this method when route changes:
   Future<void> logCurrentScreen(String screenName) async {
     await analytics.setCurrentScreen(screenName: screenName);
-    // You can add debug prints here if you want
     debugPrint('Analytics: Current screen set to $screenName');
   }
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(routerProvider);
+    final locale = ref.watch(localeProvider);
 
-    // Hook into router's navigator to listen for route changes
     router.routerDelegate.addListener(() {
       final currentRoute = router.routerDelegate.currentConfiguration;
       if (currentRoute != null) {
-        // Log the screen name based on route name or path
         logCurrentScreen(currentRoute.toString());
       }
     });
 
-    // Initialize notifications
     ref.read(notificationServiceProvider);
 
-    return MaterialApp.router(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
-      routerConfig: router,
-    );
+   return MaterialApp.router(
+  debugShowCheckedModeBanner: false,
+  theme: ThemeData(primarySwatch: Colors.blue),
+  routerConfig: router,
+  locale: locale,
+  supportedLocales: const [
+    Locale('en'),
+    Locale('fr'),
+    Locale('rw'),
+  ],
+  localeResolutionCallback: (locale, supportedLocales) {
+  // Fallback to English for Material if 'rw' is not supported
+  if (locale != null && ['en', 'fr'].contains(locale.languageCode)) {
+    return locale;
+  }
+  if (locale?.languageCode == 'rw') {
+    return const Locale('en');
+  }
+  return const Locale('en');
+},
+
+  localizationsDelegates: const [
+    AppLocalizations.delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ],
+);
+
+
   }
 }
